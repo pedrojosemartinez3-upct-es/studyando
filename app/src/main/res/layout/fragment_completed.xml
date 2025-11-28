@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="72dp">
+
+    <TextView
+        android:id="@+id/titleCompleted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Realizadas"
+        android:textSize="24sp"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="16dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerCompleted"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/titleCompleted"
+        android:layout_marginTop="12dp"
+        android:padding="16dp"
+        android:clipToPadding="false" />
+
+    <TextView
+        android:id="@+id/emptyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Aún no hay tareas realizadas"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+</RelativeLayout>

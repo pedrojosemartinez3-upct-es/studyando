@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="72dp"> <!-- deja espacio al BottomNav -->
+
+    <TextView
+        android:id="@+id/titleTasks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="18dp"
+        android:text="Tareas/Notas"
+        android:textSize="24sp"
+        android:textColor="@color/morado"
+        android:fontFamily="@font/poppins"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/titleTasks"
+        android:layout_marginTop="12dp"
+        android:padding="16dp"
+        android:clipToPadding="false"/>
+
+    <!-- Estado vacío -->
+    <TextView
+        android:id="@+id/emptyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No tienes tareas.\nToca + para crear una."
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:visibility="gone"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/outline_add_24"
+        android:tint="@color/black"
+        android:backgroundTint="@color/morado"/>
+</RelativeLayout>
