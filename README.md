@@ -59,12 +59,7 @@ El proyecto sigue una arquitectura **MVVM (Model-View-ViewModel)** y el patrón 
 4.  Ejecutar en un emulador o dispositivo físico (Mínimo SDK 24).
 
 ---
-
-## 👤 Autor
-
-**[Tu Nombre Completo]**
-* **Ciclo:** [Nombre de tu Ciclo, ej. Desarrollo de Aplicaciones Multiplataforma]
-* **Centro:** [Nombre de tu Centro de Estudios]
-* **Convocatoria:** 2024/2025
-
+## 👤
+**Pedro José Martínez Manuel**
+* **Ciclo:** Desarrollo de Aplicaciones Multiplataforma
 ---
