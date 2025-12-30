@@ -1,31 +1,23 @@
 package com.studyando.data.repo
 
 import com.studyando.data.local.StudyandoDatabase
-import com.studyando.data.local.entity.ScheduleEntity // ¡Importar!
+import com.studyando.data.local.entity.ScheduleEntity
 import com.studyando.data.local.entity.TaskEntity
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StudyRepository @Inject constructor(
-    private val db: StudyandoDatabase // Room se encarga de los DAOs
-) {
-    // --- Tareas ---
-    val openTasks: Flow<List<TaskEntity>> = db.taskDao().observeOpenTasks()
+class StudyRepository @Inject constructor(private val db: StudyandoDatabase) {
+    val openTasks = db.taskDao().observeOpenTasks()
+    val completedTasks = db.taskDao().observeCompletedTasks()
 
-    // (Añade esto para el CompletedFragment)
-    val completedTasks: Flow<List<TaskEntity>> = db.taskDao().observeCompletedTasks()
-
-    suspend fun addTask(task: TaskEntity) = db.taskDao().insert(task)
     suspend fun updateTask(task: TaskEntity) = db.taskDao().update(task)
-    suspend fun toggleDone(task: TaskEntity) =
-        db.taskDao().update(task.copy(isDone = !task.isDone))
+    suspend fun deleteTask(task: TaskEntity) = db.taskDao().delete(task)
+    suspend fun addTask(task: TaskEntity) = db.taskDao().insert(task)
+    suspend fun toggleDone(task: TaskEntity) = db.taskDao().update(task)
+    fun getClassesByDay(day: Int) = db.scheduleDao().getClassesByDay(day)
 
-    // --- Horario (Schedule) ---
-    fun getClassesByDay(day: Int): Flow<List<ScheduleEntity>> =
-        db.scheduleDao().getClassesByDay(day)
-
-    suspend fun insertClassSession(session: ScheduleEntity) =
-        db.scheduleDao().insert(session)
+    suspend fun insertClass(session: ScheduleEntity) = db.scheduleDao().insert(session)
+    suspend fun updateClass(session: ScheduleEntity) = db.scheduleDao().insert(session)
+    suspend fun deleteClass(session: ScheduleEntity) = db.scheduleDao().delete(session)
 }

@@ -1,112 +1,194 @@
 package com.studyando.ui.schedule
 
+import android.app.AlertDialog
 import android.app.TimePickerDialog
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.EditText
+import android.widget.Button
 import android.widget.LinearLayout
-import androidx.appcompat.app.AlertDialog
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.studyando.data.local.entity.ScheduleEntity // ¡Importar!
+import androidx.recyclerview.widget.RecyclerView
+import com.studyando.data.local.entity.ScheduleEntity
+import com.studyando.R
 import com.studyando.databinding.FragmentScheduleBinding
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
-@AndroidEntryPoint // ¡MUY IMPORTANTE!
-class ScheduleFragment : Fragment() {
+@AndroidEntryPoint
+class ScheduleFragment : Fragment(R.layout.fragment_schedule) {
 
-    private var _b: FragmentScheduleBinding? = null
-    private val b get() = _b!!
+    private var _binding: FragmentScheduleBinding? = null
+    private val binding get() = _binding!!
 
-    // Inyecta el ViewModel
     private val viewModel: ScheduleViewModel by viewModels()
-
     private lateinit var adapter: ScheduleAdapter
+
+    private var fetchJob: Job? = null
+    private var selectedDay = 1
+    private var tStart = 8 * 60 + 30
+    private var tEnd = 9 * 60 + 30
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _b = FragmentScheduleBinding.inflate(layoutInflater)
+        _binding = FragmentScheduleBinding.bind(view)
 
-        // Tu adapter está bien, pero debe aceptar la nueva Entity
-        adapter = ScheduleAdapter(mutableListOf())
+        initList()
+        initChips()
 
-        b.rvClasses.layoutManager = LinearLayoutManager(requireContext())
-        b.rvClasses.adapter = adapter
-
-        val days = arrayOf("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo")
-        b.spDay.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, days)
-
-        b.spDay.setOnItemSelectedListenerCompat { _, _, pos, _ ->
-            loadDay(pos + 1)
-        }
-
-        b.fabAddClass.setOnClickListener { showAddDialog() }
-
-        loadDay(1) // Lunes por defecto
+        binding.fabAddClass.setOnClickListener { showClassDialog() }
     }
 
-    private fun loadDay(day: Int) {
-        // Observamos el Flow del ViewModel
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.getClassesByDay(day).collect { sessions ->
-                adapter.submit(sessions) // El adapter recibe la lista
+    private fun initList() {
+        adapter = ScheduleAdapter(mutableListOf()) { item -> showClassDialog(item) }
+        binding.rvClasses.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvClasses.adapter = adapter
+
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(r: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+
+            override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
+                val pos = vh.adapterPosition
+                val item = adapter.getItem(pos)
+
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Borrar clase")
+                    .setMessage("¿Eliminar ${item.subject}?")
+                    .setPositiveButton("Sí") { _, _ ->
+                        viewModel.deleteClass(item)
+                        Toast.makeText(requireContext(), "Borrado", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("No") { _, _ -> adapter.notifyItemChanged(pos) }
+                    .show()
+            }
+        }).attachToRecyclerView(binding.rvClasses)
+    }
+
+    private fun initChips() {
+        binding.chipGroupDays.setOnCheckedStateChangeListener { _, ids ->
+            if (ids.isNotEmpty()) {
+                selectedDay = when (ids.first()) {
+                    R.id.chipMon -> 1
+                    R.id.chipTue -> 2
+                    R.id.chipWed -> 3
+                    R.id.chipThu -> 4
+                    R.id.chipFri -> 5
+                    R.id.chipSat -> 6
+                    R.id.chipSun -> 7
+                    else -> 1
+                }
+                refreshData(selectedDay)
+            }
+        }
+        binding.chipMon.isChecked = true
+        refreshData(1)
+    }
+
+    private fun refreshData(day: Int) {
+        fetchJob?.cancel()
+        fetchJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.getClassesByDay(day).collect { list ->
+                adapter.submit(list)
+                val empty = list.isEmpty()
+                binding.emptyView.visibility = if (empty) View.VISIBLE else View.GONE
+                binding.rvClasses.visibility = if (empty) View.GONE else View.VISIBLE
             }
         }
     }
 
-    private fun showAddDialog() {
-        // Tu lógica del diálogo está bien, solo cambia el guardado
-        val ctx = requireContext()
-        val container = LinearLayout(ctx).apply { /*...*/ }
-        val inputSubject = EditText(ctx).apply { hint = "Asignatura" }
-        val inputLocation = EditText(ctx).apply { hint = "Aula (opcional)" }
-        container.addView(inputSubject)
-        container.addView(inputLocation)
+    private fun showClassDialog(item: ScheduleEntity? = null) {
+        val root = layoutInflater.inflate(R.layout.dialog_add_class, null)
+        val dialog = AlertDialog.Builder(requireContext()).setView(root).create()
 
-        var start = 8*60
-        var end = 9*60
+        val etSub = root.findViewById<TextInputEditText>(R.id.etSubject)
+        val etLoc = root.findViewById<TextInputEditText>(R.id.etLocation)
+        val btnIn = root.findViewById<Button>(R.id.btnStartTime)
+        val btnOut = root.findViewById<Button>(R.id.btnEndTime)
+        val colorsBox = root.findViewById<LinearLayout>(R.id.colorPickerContainer)
 
-        AlertDialog.Builder(ctx)
-            .setTitle("Nueva clase")
-            .setView(container)
-            .setPositiveButton("Elegir horas") { _, _ ->
-                TimePickerDialog(ctx, { _, h, m ->
-                    start = h*60 + m
-                    TimePickerDialog(ctx, { _, h2, m2 ->
-                        end = h2*60 + m2
-                        val day = b.spDay.selectedItemPosition + 1
+        var activeColor = item?.color ?: 0xFFD1C4E9.toInt()
+        val palette = listOf(0xFFD1C4E9.toInt(), 0xFFBBDEFB.toInt(), 0xFFC8E6C9.toInt(), 0xFFFFF9C4.toInt(), 0xFFFFCCBC.toInt())
 
-                        // ¡Usa el ViewModel para guardar!
-                        viewModel.addClassSession(
-                            subject = inputSubject.text.toString().trim(),
-                            location = inputLocation.text.toString().trim().ifBlank { null },
-                            day = day,
-                            start = start,
-                            end = end
-                        )
-                        // Ya no necesitas loadDay(day), el Flow lo hará automático
+        palette.forEach { c ->
+            val v = View(requireContext()).apply {
+                val px = (34 * resources.displayMetrics.density).toInt()
+                layoutParams = LinearLayout.LayoutParams(px, px).apply { setMargins(10, 10, 10, 10) }
+                background = ContextCompat.getDrawable(requireContext(), R.drawable.color_circle)
+                backgroundTintList = ColorStateList.valueOf(c)
+                alpha = if (c == activeColor) 1.0f else 0.6f
 
-                    }, end/60, end%60, true).show()
-                }, start/60, start%60, true).show()
+                setOnClickListener {
+                    activeColor = c
+                    colorsBox.children.forEach { it.alpha = 0.6f }
+                    alpha = 1.0f
+                }
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+            colorsBox.addView(v)
+        }
+
+        item?.let {
+            etSub.setText(it.subject)
+            etLoc.setText(it.location)
+            tStart = it.startMinutes
+            tEnd = it.endMinutes
+            btnIn.text = "Desde: ${fmt(tStart)}"
+            btnOut.text = "Hasta: ${fmt(tEnd)}"
+        }
+
+        btnIn.setOnClickListener {
+            pickTime(tStart) { h, m ->
+                tStart = h * 60 + m
+                btnIn.text = "Desde: ${fmt(tStart)}"
+            }
+        }
+
+        btnOut.setOnClickListener {
+            pickTime(tEnd) { h, m ->
+                tEnd = h * 60 + m
+                btnOut.text = "Hasta: ${fmt(tEnd)}"
+            }
+        }
+
+        root.findViewById<Button>(R.id.btnSaveClass).setOnClickListener {
+            val name = etSub.text.toString().trim()
+            if (name.isEmpty()) {
+                etSub.error = "Falta nombre"
+                return@setOnClickListener
+            }
+
+            if (item == null) {
+                viewModel.addClass(name, etLoc.text.toString(), selectedDay, tStart, tEnd, activeColor)
+            } else {
+                viewModel.updateClass(item.copy(
+                    subject = name,
+                    location = etLoc.text.toString(),
+                    startMinutes = tStart,
+                    endMinutes = tEnd,
+                    color = activeColor
+                ))
+            }
+            dialog.dismiss()
+        }
+        dialog.show()
     }
+
+    private fun pickTime(initMins: Int, onTime: (Int, Int) -> Unit) {
+        TimePickerDialog(requireContext(), { _, h, m -> onTime(h, m) }, initMins / 60, initMins % 60, true).show()
+    }
+
+    private fun fmt(m: Int) = String.format("%02d:%02d", m / 60, m % 60)
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _b = null
-    }
-}
-
-/** Extension sencilla para evitar boilerplate en Spinner */
-private inline fun android.widget.Spinner.setOnItemSelectedListenerCompat(crossinline f: (parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long) -> Unit) {
-    onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-        override fun onItemSelected(p: android.widget.AdapterView<*>, v: View?, pos: Int, id: Long) = f(p, v, pos, id)
-        override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
+        _binding = null
     }
 }

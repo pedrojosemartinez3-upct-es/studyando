@@ -1,4 +1,4 @@
-package com.studyando.ui.tasks // Asegúrate de que esté en este paquete
+package com.studyando.ui.tasks
 
 import android.graphics.Paint
 import android.view.LayoutInflater
@@ -10,94 +10,61 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.studyando.R
 import com.studyando.data.local.entity.TaskEntity
-import com.studyando.databinding.NoteItemBinding // Reutilizamos tu layout de item
+import com.studyando.databinding.NoteItemBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class TasksAdapter(
-    private val listener: OnTaskClickListener // La interfaz que implementa el Fragmento
-) : ListAdapter<TaskEntity, TasksAdapter.TaskViewHolder>(TaskDiffCallback()) {
+class TasksAdapter(private val listener: OnTaskClickListener) :
+    ListAdapter<TaskEntity, TasksAdapter.VH>(DiffCallback) {
 
-    private val dateFmt = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    private val df = SimpleDateFormat("dd MMM", Locale.getDefault())
 
-    inner class TaskViewHolder(val binding: NoteItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class VH(val b: NoteItemBinding) : RecyclerView.ViewHolder(b.root) {
+        fun bind(item: TaskEntity) {
+            b.titleTextView.text = item.title
+            b.contentTextView.text = item.description
+            b.checkDone.isChecked = item.isDone
 
-        init {
-            // Click en el CheckBox
-            binding.checkDone.setOnClickListener {
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    val task = getItem(position)
-                    listener.onTaskCheckedChanged(task, binding.checkDone.isChecked)
-                }
+            val color = when (item.priority) {
+                1 -> R.color.md_theme_light_primary
+                2 -> android.R.color.holo_orange_light
+                else -> R.color.md_theme_light_surfaceVariant
             }
+            b.colorStrip.setBackgroundColor(ContextCompat.getColor(itemView.context, color))
 
-            // Click en el item (para editar)
-            itemView.setOnClickListener {
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    val task = getItem(position)
-                    listener.onTaskClicked(task)
-                }
-            }
-        }
+            if (item.dueAt != null) {
+                b.dateContainer.visibility = View.VISIBLE
+                b.dueTextView.text = "Entrega: ${df.format(Date(item.dueAt))}"
 
-        fun bind(task: TaskEntity) {
-            binding.titleTextView.text = task.title
-            binding.contentTextView.text = task.description
-
-            // Lógica de la fecha de entrega
-            if (task.dueAt != null) {
-                binding.dueTextView.visibility = View.VISIBLE
-                binding.dueTextView.text = "Entrega: ${dateFmt.format(Date(task.dueAt))}"
-                val vencida = !task.isDone && task.dueAt < System.currentTimeMillis()
-                binding.dueTextView.setTextColor(
-                    if (vencida) ContextCompat.getColor(itemView.context, android.R.color.holo_red_dark)
-                    else ContextCompat.getColor(itemView.context, android.R.color.darker_gray)
-                )
+                val overdue = !item.isDone && item.dueAt < System.currentTimeMillis()
+                b.dateContainer.setBackgroundResource(if (overdue) R.drawable.bg_pill_info_red else R.drawable.bg_pill_info)
             } else {
-                binding.dueTextView.visibility = View.GONE
+                b.dateContainer.visibility = View.GONE
             }
 
-            // Lógica de Tarea Completada (Tachado)
-            binding.checkDone.isChecked = task.isDone
-            applyCompletedStyle(binding, task.isDone)
-
-            binding.optionsButton.visibility = View.GONE // Ocultamos el menú de 3 puntos por ahora
-        }
-
-        private fun applyCompletedStyle(binding: NoteItemBinding, completed: Boolean) {
-            if (completed) {
-                binding.titleTextView.paintFlags = binding.titleTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                binding.contentTextView.paintFlags = binding.contentTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            } else {
-                binding.titleTextView.paintFlags = binding.titleTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-                binding.contentTextView.paintFlags = binding.contentTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-            }
+            val flag = if (item.isDone) Paint.STRIKE_THRU_TEXT_FLAG else 0
+            b.titleTextView.paintFlags = flag
+            b.root.alpha = if (item.isDone) 0.6f else 1.0f
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
-        val binding = NoteItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return TaskViewHolder(binding)
+    override fun onCreateViewHolder(p: ViewGroup, t: Int) =
+        VH(NoteItemBinding.inflate(LayoutInflater.from(p.context), p, false))
+
+    override fun onBindViewHolder(holder: VH, pos: Int) {
+        val item = getItem(pos)
+        holder.bind(item)
+        holder.b.checkDone.setOnClickListener { listener.onTaskCheckedChanged(item, holder.b.checkDone.isChecked) }
+        holder.itemView.setOnClickListener { listener.onTaskClicked(item) }
     }
 
-    override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-        val currentTask = getItem(position)
-        holder.bind(currentTask)
+    object DiffCallback : DiffUtil.ItemCallback<TaskEntity>() {
+        override fun areItemsTheSame(old: TaskEntity, new: TaskEntity) = old.id == new.id
+        override fun areContentsTheSame(old: TaskEntity, new: TaskEntity) = old == new
     }
 
-    // --- DiffUtil (para eficiencia) ---
-    class TaskDiffCallback : DiffUtil.ItemCallback<TaskEntity>() {
-        override fun areItemsTheSame(oldItem: TaskEntity, newItem: TaskEntity) =
-            oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: TaskEntity, newItem: TaskEntity) =
-            oldItem == newItem
-    }
-
-    // --- ESTA ES LA INTERFAZ QUE FALTABA ---
     interface OnTaskClickListener {
-        fun onTaskClicked(task: TaskEntity) // Para editar
-        fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) // Para completar
+        fun onTaskClicked(task: TaskEntity)
+        fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean)
     }
 }

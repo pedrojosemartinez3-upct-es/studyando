@@ -1,51 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="72dp"> <!-- deja espacio al BottomNav -->
+    android:background="#EEEEEE">
 
     <TextView
         android:id="@+id/titleTasks"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="18dp"
-        android:text="Tareas/Notas"
-        android:textSize="24sp"
-        android:textColor="@color/morado"
-        android:fontFamily="@font/poppins"/>
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/poppins"
+        android:text="Mis Tareas"
+        android:textColor="@color/md_theme_light_onBackground"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/notesRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/titleTasks"
+        android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        android:padding="16dp"
-        android:clipToPadding="false"/>
+        android:clipToPadding="false"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleTasks"
+        tools:listitem="@layout/note_item" />
 
-    <!-- Estado vacío -->
-    <TextView
+    <LinearLayout
         android:id="@+id/emptyView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="No tienes tareas.\nToca + para crear una."
-        android:textAlignment="center"
-        android:textSize="16sp"
-        android:visibility="gone"/>
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:alpha="0.3"
+            app:srcCompat="@drawable/baseline_assignment_24"
+            app:tint="@color/md_theme_light_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/poppins"
+            android:text="Lista despejada"
+            android:textColor="@color/md_theme_light_onSurface"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.6"
+            android:fontFamily="@font/poppins"
+            android:text="Toca el botón + para empezar"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnViewCompleted"
+        style="@style/Widget.Material3.FloatingActionButton.Tertiary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        app:fabSize="mini"
+        app:layout_constraintBottom_toBottomOf="@id/addButton"
+        app:layout_constraintEnd_toStartOf="@id/addButton"
+        app:layout_constraintTop_toTopOf="@id/addButton"
+        app:srcCompat="@drawable/baseline_density_medium_24" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:src="@drawable/outline_add_24"
-        android:tint="@color/black"
-        android:backgroundTint="@color/morado"/>
-</RelativeLayout>
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="90dp"
+        app:backgroundTint="@color/md_theme_light_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.SmallComponent"
+        app:srcCompat="@drawable/outline_add_24"
+        app:tint="@color/md_theme_light_onPrimary" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

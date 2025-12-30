@@ -1,79 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:padding="24dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/md_theme_light_background"
+    android:padding="20dp">
 
-    <TextView
-        android:id="@+id/txtPhase"
-        android:text="Listo"
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPhase"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="@color/md_theme_light_primaryContainer"
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/txtTime"
-        android:text="25:00"
-        android:textStyle="bold"
-        android:textSize="48sp"
-        android:layout_marginBottom="16dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/txtPhase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="Fase de Estudio"
+            android:fontFamily="@font/poppins"
+            android:textColor="@color/md_theme_light_onPrimaryContainer"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
 
-    <!-- Controles -->
+    <FrameLayout
+        android:id="@+id/clockContainer"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/cardPhase"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            app:indicatorSize="240dp"
+            app:trackThickness="10dp"
+            android:progress="100"
+            app:trackColor="@color/md_theme_light_surfaceVariant"
+            app:trackCornerRadius="5dp"/>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progressTimer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:progress="0"
+            app:indicatorColor="@color/md_theme_light_primary"
+            app:indicatorSize="240dp"
+            app:trackColor="@android:color/transparent"
+            app:trackCornerRadius="5dp"
+            app:trackThickness="10dp" />
+
+        <TextView
+            android:id="@+id/txtTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="25:00"
+            android:textSize="56sp"
+            android:fontFamily="@font/poppins"
+            android:textColor="@color/md_theme_light_onBackground"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/layoutControls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="16dp"
+        app:cardBackgroundColor="@color/md_theme_light_surfaceVariant"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/clockContainer"
+        app:layout_constraintBottom_toTopOf="@+id/layoutButtons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/poppins"
+                android:text="Ajustes de Sesión"
+                android:textStyle="bold" />
+
+            <LinearLayout style="@style/PomodoroIconLabelStyle">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp"
+                    app:srcCompat="@drawable/baseline_edit_24" app:tint="@color/md_theme_light_primary" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text=" Estudio" android:textSize="13sp" android:fontFamily="@font/poppins"/>
+            </LinearLayout>
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderStudy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stepSize="5" android:valueFrom="5" android:valueTo="120" />
+
+            <LinearLayout style="@style/PomodoroIconLabelStyle" android:layout_marginTop="4dp">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp"
+                    app:srcCompat="@drawable/baseline_relax_24" app:tint="@color/md_theme_light_primary" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text=" Descanso" android:textSize="13sp" android:fontFamily="@font/poppins"/>
+            </LinearLayout>
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderBreak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stepSize="1" android:valueFrom="1" android:valueTo="30" />
+
+            <LinearLayout style="@style/PomodoroIconLabelStyle" android:layout_marginTop="4dp">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp"
+                    app:srcCompat="@drawable/baseline_cycle_24" app:tint="@color/md_theme_light_primary" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text=" Ciclos Totales" android:textSize="13sp" android:fontFamily="@font/poppins"/>
+            </LinearLayout>
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderCycles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stepSize="1" android:valueFrom="1" android:valueTo="12" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <LinearLayout
-        android:orientation="horizontal"
+        android:id="@+id/layoutButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_marginBottom="8dp">
-        <TextView android:text="Estudio (min):" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp"/>
-        <NumberPicker
-            android:id="@+id/pickerStudy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Space android:layout_width="24dp" android:layout_height="0dp"/>
-        <TextView android:text="Descanso (min):" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp"/>
-        <NumberPicker
-            android:id="@+id/pickerBreak"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-
-    <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_marginBottom="16dp">
-        <TextView android:text="Ciclos:" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp"/>
-        <NumberPicker
-            android:id="@+id/pickerCycles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartPause"
+            android:layout_width="0dp"
+            android:layout_weight="1.5"
+            android:layout_height="56dp"
             android:text="Iniciar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            app:cornerRadius="16dp" />
 
-        <Space android:layout_width="16dp" android:layout_height="0dp"/>
+        <Space android:layout_width="12dp" android:layout_height="wrap_content" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnReset"
-            android:text="Reiniciar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="56dp"
+            android:text="Reset"
+            app:cornerRadius="16dp" />
     </LinearLayout>
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

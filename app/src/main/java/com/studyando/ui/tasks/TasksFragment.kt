@@ -6,75 +6,63 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.studyando.R
 import com.studyando.data.local.entity.TaskEntity
 import com.studyando.databinding.FragmentTasksBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
-@AndroidEntryPoint // ¡MUY IMPORTANTE!
+@AndroidEntryPoint
 class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnTaskClickListener {
+    private var _b: FragmentTasksBinding? = null
+    private val b get() = _b!!
+    private val vm: TasksViewModel by viewModels()
+    private lateinit var adapter: TasksAdapter
 
-    private var _binding: FragmentTasksBinding? = null
-    private val binding get() = _binding!!
+    override fun onViewCreated(v: View, s: Bundle?) {
+        super.onViewCreated(v, s)
+        _b = FragmentTasksBinding.bind(v)
 
-    // Inyecta el ViewModel
-    private val viewModel: TasksViewModel by viewModels()
+        adapter = TasksAdapter(this)
+        b.notesRecyclerView.adapter = adapter
+        b.notesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-    // El import de TasksAdapter ahora funciona
-    private lateinit var tasksAdapter: TasksAdapter
+        // Swipe simple para borrar
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(r: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+            override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
+                val task = adapter.currentList[vh.bindingAdapterPosition]
+                vm.deleteTask(task)
+                Snackbar.make(b.root, "Tarea eliminada", Snackbar.LENGTH_LONG)
+                    .setAction("DESHACER") { vm.addTask(task.title, task.description, task.priority, task.dueAt) }
+                    .show()
+            }
+        }).attachToRecyclerView(b.notesRecyclerView)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentTasksBinding.bind(view)
+        b.addButton.setOnClickListener { findNavController().navigate(R.id.action_tasksFragment_to_addEditTaskFragment) }
+        b.btnViewCompleted.setOnClickListener { findNavController().navigate(R.id.completedFragment) }
 
-        // Usamos el TasksAdapter moderno
-        tasksAdapter = TasksAdapter(this)
-
-        binding.notesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        binding.notesRecyclerView.adapter = tasksAdapter
-
-        // TODO: Volver a implementar el Swipe con ItemTouchHelper
-
-        binding.addButton.setOnClickListener {
-            // Esta referencia ahora funciona
-            findNavController().navigate(R.id.action_tasksFragment_to_addEditTaskFragment)
-        }
-
-        // Observa el Flow del ViewModel
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.openTasks.collect { tasks ->
-                tasksAdapter.submitList(tasks) // "submitList" ahora se reconoce
-                updateEmptyState(tasks.isEmpty())
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.openTasks.collect { list ->
+                adapter.submitList(list)
+                b.emptyView.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Ya no se necesita refreshData, el Flow lo hace automático
-    }
-
-    private fun updateEmptyState(empty: Boolean) {
-        binding.emptyView.visibility = if (empty) View.VISIBLE else View.GONE
-        binding.notesRecyclerView.visibility = if (empty) View.GONE else View.VISIBLE
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // --- Implementación de los Clicks (los "override" ahora funcionan) ---
     override fun onTaskClicked(task: TaskEntity) {
-        // Navegar para editar
-        // val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(task.id)
-        // findNavController().navigate(action)
+        val args = Bundle().apply {
+            putInt("task_id", task.id.toInt())
+            putString("title", task.title)
+            putString("desc", task.description)
+        }
+        findNavController().navigate(R.id.action_tasksFragment_to_addEditTaskFragment, args)
     }
 
-    override fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) {
-        // Avisa al ViewModel
-        viewModel.onTaskDoneToggled(task)
-    }
+    override fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) = vm.onTaskDoneToggled(task)
+    override fun onDestroyView() { _b = null; super.onDestroyView() }
 }

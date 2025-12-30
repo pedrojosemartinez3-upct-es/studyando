@@ -1,82 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/md_theme_light_surfaceVariant"
+    app:cardBackgroundColor="@color/md_theme_light_surface">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="16dp">
 
-        <!-- Fila superior: título + check + menú -->
-        <RelativeLayout
-            android:layout_width="match_parent"
+        <View
+            android:id="@+id/colorStrip"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@drawable/rounded_indicator_bg"
+            app:layout_constraintBottom_toBottomOf="@id/titleTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/titleTextView" />
+
+        <CheckBox
+            android:id="@+id/checkDone"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp">
+            android:layout_marginStart="8dp"
+            app:layout_constraintStart_toEndOf="@id/colorStrip"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Título -->
-            <TextView
-                android:id="@+id/titleTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Título de la tarea"
-                android:fontFamily="@font/poppins"
-                android:textSize="18sp"
-                android:textColor="@color/morado"
-                android:textStyle="bold"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:ellipsize="end"
-                android:singleLine="true" />
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@font/poppins"
+            android:text="Título de la tarea"
+            android:textColor="@color/md_theme_light_onSurface"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/checkDone"
+            app:layout_constraintTop_toTopOf="@id/checkDone"
+            app:layout_constraintBottom_toBottomOf="@id/checkDone"/>
 
-            <!-- Check para marcar completado -->
-            <CheckBox
-                android:id="@+id/checkDone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toEndOf="@id/titleTextView"
-                android:layout_marginStart="16dp" />
-
-            <!-- Botón de menú -->
-            <ImageView
-                android:id="@+id/optionsButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:src="@drawable/baseline_density_medium_24"
-                android:contentDescription="Opciones" />
-        </RelativeLayout>
-
-        <!-- Descripción -->
         <TextView
             android:id="@+id/contentTextView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Descripción de la tarea"
+            android:layout_marginTop="4dp"
+            android:alpha="0.7"
             android:fontFamily="@font/poppins"
+            android:text="Descripción más limpia y legible para el usuario..."
+            android:textColor="@color/md_theme_light_onSurfaceVariant"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
-            android:maxLines="3"
-            android:ellipsize="end" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/titleTextView"
+            app:layout_constraintTop_toBottomOf="@id/titleTextView" />
 
-        <TextView
-            android:id="@+id/dueTextView"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:id="@+id/dateContainer"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Entrega: --"
-            android:textSize="12sp"
-            android:layout_marginTop="6dp"
-            android:textColor="@android:color/darker_gray"/>
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_pill_info"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            app:layout_constraintStart_toStartOf="@id/titleTextView"
+            app:layout_constraintTop_toBottomOf="@id/contentTextView">
 
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/baseline_access_time_24"
+                app:tint="@color/md_theme_light_primary" />
 
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+            <TextView
+                android:id="@+id/dueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="@font/poppins"
+                android:text="Entrega: 20 Oct"
+                android:textColor="@color/md_theme_light_primary"
+                android:textSize="12sp"
+                android:textStyle="normal" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

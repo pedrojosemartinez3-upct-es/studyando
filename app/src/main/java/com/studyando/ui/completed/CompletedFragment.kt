@@ -1,81 +1,56 @@
 package com.studyando.ui.completed
 
 import android.os.Bundle
-import com.studyando.R
-import android.view.*
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.studyando.R
 import com.studyando.data.local.entity.TaskEntity
 import com.studyando.databinding.FragmentCompletedBinding
-import com.studyando.ui.tasks.TasksAdapter // ¡Import clave!
-import com.studyando.ui.tasks.TasksViewModel // ¡Import clave!
+import com.studyando.ui.tasks.TasksAdapter
+import com.studyando.ui.tasks.TasksViewModel
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CompletedFragment : Fragment(R.layout.fragment_completed), TasksAdapter.OnTaskClickListener {
-
-    private var _binding: FragmentCompletedBinding? = null
-    private val binding get() = _binding!!
-
-    // Reutilizamos el TasksViewModel
-    private val viewModel: TasksViewModel by viewModels()
-
-    // El import de TasksAdapter ahora funciona
+    private var _b: FragmentCompletedBinding? = null
+    private val b get() = _b!!
+    private val vm: TasksViewModel by viewModels()
     private lateinit var adapter: TasksAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentCompletedBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onViewCreated(v: View, s: Bundle?) {
+        super.onViewCreated(v, s)
+        _b = FragmentCompletedBinding.bind(v)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        adapter = TasksAdapter(this)
+        b.recyclerCompleted.adapter = adapter
+        b.btnBack.setOnClickListener { findNavController().popBackStack() }
 
-        adapter = TasksAdapter(this) // El adapter moderno
-        binding.recyclerCompleted.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerCompleted.adapter = adapter
-
-        // Observa el Flow de tareas completadas
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.completedTasks.collect { tasks ->
-                adapter.submitList(tasks)
-                updateEmpty(tasks.isEmpty())
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.completedTasks.collect { list ->
+                adapter.submitList(list)
+                val empty = list.isEmpty()
+                b.emptyView.visibility = if (empty) View.VISIBLE else View.GONE
+                b.recyclerCompleted.visibility = if (empty) View.GONE else View.VISIBLE
             }
         }
 
-        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        setHasOptionsMenu(true)
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(r: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+            override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
+                vm.deleteTask(adapter.currentList[vh.bindingAdapterPosition])
+                Snackbar.make(b.root, "Historial limpiado", Snackbar.LENGTH_LONG).show()
+            }
+        }).attachToRecyclerView(b.recyclerCompleted)
     }
 
-    private fun updateEmpty(empty: Boolean) {
-        binding.emptyView.visibility = if (empty) View.VISIBLE else View.GONE
-        binding.recyclerCompleted.visibility = if (empty) View.GONE else View.VISIBLE
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == android.R.id.home) {
-            findNavController().popBackStack()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(false)
-        _binding = null
-    }
-
-    // --- Implementación de Clicks (los "override" ahora funcionan) ---
-    override fun onTaskClicked(task: TaskEntity) { /* No hacer nada para editar */ }
-
-    override fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) {
-        viewModel.onTaskDoneToggled(task) // Permite re-abrir la tarea
-    }
+    override fun onTaskClicked(task: TaskEntity) {}
+    override fun onTaskCheckedChanged(task: TaskEntity, isChecked: Boolean) = vm.onTaskDoneToggled(task)
+    override fun onDestroyView() { _b = null; super.onDestroyView() }
 }

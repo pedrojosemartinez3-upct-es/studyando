@@ -1,121 +1,67 @@
 package com.studyando.ui.pomodoro
 
+import android.media.RingtoneManager
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import com.studyando.R
 import com.studyando.databinding.FragmentPomodoroBinding
-import java.util.concurrent.TimeUnit
 
-class PomodoroFragment : Fragment() {
+class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
+    private var _b: FragmentPomodoroBinding? = null
+    private val b get() = _b!!
 
-    private var _binding: FragmentPomodoroBinding? = null
-    private val binding get() = _binding!!
-
-    private var timer: CountDownTimer? = null
-    private var isRunning = false
-
-    private var studyMin = 25
-    private var breakMin = 5
-    private var totalCycles = 4
-    private var currentCycle = 1
-    private var inStudy = true
-    private var remainingMs = 0L
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentPomodoroBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    // Compartido con la actividad para que no muera al navegar
+    private val vm: PomodoroViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _b = FragmentPomodoroBinding.bind(view)
 
-        // Configuramos pickers
-        binding.pickerStudy.minValue = 5;  binding.pickerStudy.maxValue = 120; binding.pickerStudy.value = studyMin
-        binding.pickerBreak.minValue = 1;  binding.pickerBreak.maxValue = 60;  binding.pickerBreak.value = breakMin
-        binding.pickerCycles.minValue = 1; binding.pickerCycles.maxValue = 12; binding.pickerCycles.value = totalCycles
+        // Observadores (Vuelven a conectar automáticamente al regresar a la pantalla)
+        vm.timeStr.observe(viewLifecycleOwner) { b.txtTime.text = it }
+        vm.progress.observe(viewLifecycleOwner) { b.progressTimer.setProgress(it, true) }
+        vm.phaseStr.observe(viewLifecycleOwner) { b.txtPhase.text = it }
+        vm.isRunning.observe(viewLifecycleOwner) { b.btnStartPause.text = if (it) "Pausar" else "Iniciar" }
 
-        // Estado inicial
-        setPhase(study = true, freshCycle = true)
-
-        binding.btnStartPause.setOnClickListener {
-            if (isRunning) pauseTimer() else startTimer()
-        }
-        binding.btnReset.setOnClickListener {
-            pauseTimer()
-            // lee valores actuales
-            studyMin = binding.pickerStudy.value
-            breakMin = binding.pickerBreak.value
-            totalCycles = binding.pickerCycles.value
-            currentCycle = 1
-            setPhase(study = true, freshCycle = true)
-        }
-    }
-
-    private fun startTimer() {
-        if (remainingMs <= 0L) remainingMs = if (inStudy) studyMin * 60_000L else breakMin * 60_000L
-
-        timer?.cancel()
-        timer = object : CountDownTimer(remainingMs, 1_000L) {
-            override fun onTick(ms: Long) {
-                remainingMs = ms
-                renderTime(ms)
+        // Evento de Alarma
+        vm.alarmEvent.observe(viewLifecycleOwner) {
+            if (it == true) {
+                playAlarm()
+                vm.alarmEvent.value = null
             }
+        }
 
-            override fun onFinish() {
-                remainingMs = 0L
-                if (inStudy) {
-                    // pasó de estudio a descanso
-                    setPhase(study = false)
-                    startTimer() // encadena automáticamente
-                } else {
-                    // terminó un ciclo
-                    if (currentCycle < totalCycles) {
-                        currentCycle++
-                        setPhase(study = true)
-                        startTimer()
-                    } else {
-                        // todo completado
-                        isRunning = false
-                        binding.btnStartPause.text = "Iniciar"
-                        binding.txtPhase.text = "Completado ✅"
-                        renderTime(0L)
-                    }
-                }
+        // Sliders (Vinculados al VM)
+        b.sliderStudy.apply {
+            value = vm.sMin.toFloat()
+            addOnChangeListener { _, v, _ ->
+                vm.sMin = v.toInt()
+                if (vm.isRunning.value == false && vm.isStudy) vm.reset()
             }
-        }.start()
+        }
 
-        isRunning = true
-        binding.btnStartPause.text = "Pausar"
+        b.sliderBreak.apply {
+            value = vm.bMin.toFloat()
+            addOnChangeListener { _, v, _ -> vm.bMin = v.toInt() }
+        }
+
+        b.sliderCycles.apply {
+            value = vm.totalC.toFloat()
+            addOnChangeListener { _, v, _ -> vm.totalC = v.toInt() }
+        }
+
+        b.btnStartPause.setOnClickListener { vm.toggle() }
+        b.btnReset.setOnClickListener { vm.reset() }
     }
 
-    private fun pauseTimer() {
-        timer?.cancel()
-        isRunning = false
-        binding.btnStartPause.text = "Iniciar"
+    private fun playAlarm() {
+        try {
+            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            RingtoneManager.getRingtone(context, uri).play()
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
-    private fun setPhase(study: Boolean, freshCycle: Boolean = false) {
-        inStudy = study
-        remainingMs = if (study) studyMin * 60_000L else breakMin * 60_000L
-        val phase = if (study) "Estudio" else "Descanso"
-        val cycleInfo = "Ciclo $currentCycle de $totalCycles"
-        binding.txtPhase.text = if (study) "$phase • $cycleInfo" else "$phase 💤 • $cycleInfo"
-        renderTime(remainingMs)
-        if (freshCycle) binding.btnStartPause.text = "Iniciar"
-    }
-
-    private fun renderTime(ms: Long) {
-        val m = TimeUnit.MILLISECONDS.toMinutes(ms)
-        val s = TimeUnit.MILLISECONDS.toSeconds(ms) % 60
-        binding.txtTime.text = String.format("%02d:%02d", m, s)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        timer?.cancel()
-        _binding = null
-    }
+    override fun onDestroyView() { _b = null; super.onDestroyView() }
 }

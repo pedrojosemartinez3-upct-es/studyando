@@ -5,37 +5,28 @@ import androidx.lifecycle.viewModelScope
 import com.studyando.data.local.entity.TaskEntity
 import com.studyando.data.repo.StudyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TasksViewModel @Inject constructor(
-    private val repository: StudyRepository
-) : ViewModel() {
+class TasksViewModel @Inject constructor(private val repo: StudyRepository) : ViewModel() {
 
-    val openTasks: Flow<List<TaskEntity>> = repository.openTasks
-    val completedTasks: Flow<List<TaskEntity>> = repository.completedTasks
+    val openTasks = repo.openTasks
+    val completedTasks = repo.completedTasks
 
-    // --- ESTA ES LA FUNCIÓN QUE TE FALTABA ---
-    fun addTask(title: String, description: String, priority: Int, dueAt: Long?) {
+    fun addTask(title: String, desc: String, priority: Int, due: Long?) {
         viewModelScope.launch {
-            repository.addTask(
-                TaskEntity(
-                    title = title,
-                    description = description,
-                    priority = priority,
-                    dueAt = dueAt
-                )
-            )
+            repo.addTask(TaskEntity(title = title, description = desc, priority = priority, dueAt = due))
         }
     }
 
     fun onTaskDoneToggled(task: TaskEntity) {
         viewModelScope.launch {
-            repository.toggleDone(task)
+            repo.updateTask(task.copy(isDone = !task.isDone))
         }
     }
 
-    // (Aquí puedes añadir updateTask, deleteTask, etc.)
+    fun updateTask(task: TaskEntity) = viewModelScope.launch { repo.updateTask(task) }
+
+    fun deleteTask(task: TaskEntity) = viewModelScope.launch { repo.deleteTask(task) }
 }

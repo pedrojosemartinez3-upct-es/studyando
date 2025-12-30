@@ -10,24 +10,17 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ScheduleViewModel @Inject constructor(
-    private val repository: StudyRepository
-) : ViewModel() {
+class ScheduleViewModel @Inject constructor(private val repo: StudyRepository) : ViewModel() {
 
-    fun getClassesByDay(day: Int): Flow<List<ScheduleEntity>> {
-        return repository.getClassesByDay(day)
-    }
+    fun getClassesByDay(day: Int): Flow<List<ScheduleEntity>> = repo.getClassesByDay(day)
 
-    fun addClassSession(subject: String, location: String?, day: Int, start: Int, end: Int) {
+    fun addClass(sub: String, loc: String?, day: Int, start: Int, end: Int, color: Int) {
         viewModelScope.launch {
-            val session = ScheduleEntity(
-                subject = subject,
-                location = location,
-                dayOfWeek = day,
-                startMinutes = start,
-                endMinutes = end
-            )
-            repository.insertClassSession(session)
+            repo.insertClass(ScheduleEntity(0, sub, loc, day, start, end, color))
         }
     }
+
+    fun updateClass(item: ScheduleEntity) = viewModelScope.launch { repo.updateClass(item) }
+
+    fun deleteClass(item: ScheduleEntity) = viewModelScope.launch { repo.deleteClass(item) }
 }

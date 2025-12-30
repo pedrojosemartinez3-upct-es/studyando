@@ -1,9 +1,6 @@
 package com.studyando.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.studyando.data.local.entity.ScheduleEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -16,5 +13,10 @@ interface ScheduleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(session: ScheduleEntity)
 
-    // (Añade @Delete y @Update si los necesitas)
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(session: ScheduleEntity)
+
+    @Delete
+    suspend fun delete(session: ScheduleEntity)
+
 }

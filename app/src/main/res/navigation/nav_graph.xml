@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/tasksFragment">
 
     <fragment
         android:id="@+id/tasksFragment"
         android:name="com.studyando.ui.tasks.TasksFragment"
-        android:label="Tareas">
-
+        android:label="Tareas"
+        tools:layout="@layout/fragment_tasks">
         <action
             android:id="@+id/action_tasksFragment_to_addEditTaskFragment"
             app:destination="@id/addEditTaskFragment" />
-
+        <action
+            android:id="@+id/action_tasksFragment_to_completedFragment"
+            app:destination="@id/completedFragment" />
     </fragment>
 
     <fragment
@@ -29,6 +32,12 @@
         android:id="@+id/scheduleFragment"
         android:name="com.studyando.ui.schedule.ScheduleFragment"
         android:label="Horario" />
+
+    <fragment
+        android:id="@+id/statsFragment"
+        android:name="com.studyando.ui.stats.StatsFragment"
+        android:label="Estadísticas"
+        tools:layout="@layout/fragment_stats" />
 
     <dialog
         android:id="@+id/addEditTaskFragment"
