@@ -20,15 +20,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfig: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 1. Instalar Splash Screen
+        // Splash Screen
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // 2. Inflar el binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 3. Lógica del Splash Screen (800ms)
+        // Lógica del Splash Screen
         var keepSplashScreen = true
         splashScreen.setKeepOnScreenCondition { keepSplashScreen }
 
@@ -36,12 +35,12 @@ class MainActivity : AppCompatActivity() {
             keepSplashScreen = false
         }, 800L) // Tiempo reducido para mayor rapidez
 
-        // 4. Configurar la Toolbar para la Idea 1 (Logo Izquierda)
+        // Toolbar (Logo Izquierda)
         setSupportActionBar(binding.topAppBar)
         // Ocultamos el título por defecto para que luzca el diseño del XML (Gorro + Studyando)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        // 5. Animación de salida del Splash (Suavizado)
+        // Animación de salida del Splash (Suavizado)
         splashScreen.setOnExitAnimationListener { splashScreenView ->
             val alpha = ObjectAnimator.ofFloat(splashScreenView.view, View.ALPHA, 1f, 0f)
             alpha.duration = 400L
@@ -53,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             alpha.start()
         }
 
-        // 6. Configuración de Navegación
+        // Configuración de Navegación
         val navHost = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHost.navController
@@ -67,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfig)
         binding.bottomNav.setupWithNavController(navController)
 
-        // IMPORTANTE: Volver a ocultar el título después de configurar la navegación
+        // Volvemos a ocultar el título después de configurar la navegación
         // porque setupActionBarWithNavController a veces lo vuelve a activar.
         navController.addOnDestinationChangedListener { _, _, _ ->
             supportActionBar?.setDisplayShowTitleEnabled(false)

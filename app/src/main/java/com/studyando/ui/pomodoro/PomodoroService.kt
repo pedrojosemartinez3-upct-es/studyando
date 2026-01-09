@@ -120,14 +120,9 @@ class PomodoroService : Service() {
             vibrator.vibrate(800)
         }
 
-        // 3. NOTIFICACIÓN QUE SALTA (Heads-up)
-        val title = if (isEndOfStudy) "¡Hora de descansar!" else "¡A estudiar!"
-        val text = if (isEndOfStudy) "Has terminado tu bloque. Tómate un respiro." else "Empezamos el ciclo $currentCycle."
 
         val alertNotify = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
             .setSmallIcon(R.drawable.baseline_alarm_24)
-            .setContentTitle(title)
-            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)

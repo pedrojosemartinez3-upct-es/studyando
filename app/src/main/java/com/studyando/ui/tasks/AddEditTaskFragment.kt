@@ -23,14 +23,14 @@ class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
         super.onViewCreated(v, s)
         _b = DialogAddTaskBinding.bind(v)
 
-        // CORRECCIÓN: Se usa -1L para asegurar que la comparación sea entre tipos Long
+        // Se usa -1L para asegurar que la comparación sea entre tipos Long
         val id = arguments?.getLong("taskId", -1L) ?: -1L
 
         if (id != -1L) {
             b.etTitle.setText(arguments?.getString("title"))
             b.etDescription.setText(arguments?.getString("desc"))
 
-            // CORRECCIÓN: Se especifica -1L como valor por defecto para el Long
+            // Se especifica -1L como valor por defecto para el Long
             arguments?.getLong("due_at", -1L)?.takeIf { it != -1L }?.let {
                 due = it
                 b.btnPickDate.text = "Entrega: ${fmtDate(it)}"
@@ -54,7 +54,7 @@ class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
         val originalIsDone = arguments?.getBoolean("is_done", false) ?: false
 
         if (id != -1L) {
-            // CORRECCIÓN: Se pasan todos los parámetros a TaskEntity, incluyendo isDone como Booleano
+            // Se pasan todos los parámetros a TaskEntity, incluyendo isDone como Booleano
             vm.updateTask(
                 TaskEntity(
                     id = id,
@@ -78,7 +78,7 @@ class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
         DatePickerDialog(requireContext(), { _, y, m, d ->
             c.set(y, m, d)
             due = c.timeInMillis
-            // CORRECCIÓN: fmtDate devuelve String, evitando errores de tipo en la UI
+            // fmtDate devuelve String, evitando errores de tipo en la UI
             b.btnPickDate.text = "Entrega: ${fmtDate(due!!)}"
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
     }
