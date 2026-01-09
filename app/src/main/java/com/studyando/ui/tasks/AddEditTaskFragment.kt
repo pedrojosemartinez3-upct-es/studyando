@@ -3,7 +3,6 @@ package com.studyando.ui.tasks
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.studyando.R
@@ -12,6 +11,7 @@ import com.studyando.databinding.DialogAddTaskBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
+
 @AndroidEntryPoint
 class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
     private val vm: TasksViewModel by activityViewModels()
@@ -23,10 +23,14 @@ class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
         super.onViewCreated(v, s)
         _b = DialogAddTaskBinding.bind(v)
 
-        val id = arguments?.getInt("task_id", -1) ?: -1
-        if (id != -1) {
+        // CORRECCIÓN: Se usa -1L para asegurar que la comparación sea entre tipos Long
+        val id = arguments?.getLong("taskId", -1L) ?: -1L
+
+        if (id != -1L) {
             b.etTitle.setText(arguments?.getString("title"))
             b.etDescription.setText(arguments?.getString("desc"))
+
+            // CORRECCIÓN: Se especifica -1L como valor por defecto para el Long
             arguments?.getLong("due_at", -1L)?.takeIf { it != -1L }?.let {
                 due = it
                 b.btnPickDate.text = "Entrega: ${fmtDate(it)}"
@@ -38,12 +42,33 @@ class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
         b.btnSave.setOnClickListener { save(id) }
     }
 
-    private fun save(id: Int) {
+    private fun save(id: Long) {
         val t = b.etTitle.text.toString().trim()
-        if (t.isEmpty()) { b.etTitle.error = "Falta título"; return }
+        if (t.isEmpty()) {
+            b.etTitle.error = "Falta título"
+            return
+        }
 
-        if (id != -1) vm.updateTask(TaskEntity(id, t, b.etDescription.text.toString(), due, 2))
-        else vm.addTask(t, b.etDescription.text.toString(), 2, due)
+        // Recuperamos los valores originales para evitar que se reseteen al editar
+        val originalPriority = arguments?.getInt("priority", 2) ?: 2
+        val originalIsDone = arguments?.getBoolean("is_done", false) ?: false
+
+        if (id != -1L) {
+            // CORRECCIÓN: Se pasan todos los parámetros a TaskEntity, incluyendo isDone como Booleano
+            vm.updateTask(
+                TaskEntity(
+                    id = id,
+                    title = t,
+                    description = b.etDescription.text.toString(),
+                    dueAt = due,
+                    priority = originalPriority,
+                    isDone = originalIsDone
+                )
+            )
+        } else {
+            // Si es una tarea nueva, se crea con los valores por defecto
+            vm.addTask(t, b.etDescription.text.toString(), 2, due)
+        }
         dismiss()
     }
 
@@ -53,10 +78,17 @@ class AddEditTaskFragment : DialogFragment(R.layout.dialog_add_task) {
         DatePickerDialog(requireContext(), { _, y, m, d ->
             c.set(y, m, d)
             due = c.timeInMillis
+            // CORRECCIÓN: fmtDate devuelve String, evitando errores de tipo en la UI
             b.btnPickDate.text = "Entrega: ${fmtDate(due!!)}"
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    private fun fmtDate(ms: Long) = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(ms))
-    override fun onDestroyView() { _b = null; super.onDestroyView() }
+    private fun fmtDate(ms: Long): String {
+        return SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(ms))
+    }
+
+    override fun onDestroyView() {
+        _b = null
+        super.onDestroyView()
+    }
 }

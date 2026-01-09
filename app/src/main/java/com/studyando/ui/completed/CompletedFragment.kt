@@ -30,6 +30,7 @@ class CompletedFragment : Fragment(R.layout.fragment_completed), TasksAdapter.On
 
         adapter = TasksAdapter(this)
         b.recyclerCompleted.adapter = adapter
+        b.recyclerCompleted.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
         b.btnBack.setOnClickListener { findNavController().popBackStack() }
 
         viewLifecycleOwner.lifecycleScope.launch {

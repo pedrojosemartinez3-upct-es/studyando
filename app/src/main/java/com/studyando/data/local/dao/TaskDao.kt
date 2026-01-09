@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TaskDao {
+    @Query("SELECT * FROM tasks")
+    fun getAllTasks(): Flow<List<TaskEntity>>
+
     @Query("SELECT * FROM tasks WHERE isDone = 0 ORDER BY priority, COALESCE(dueAt, 9223372036854775807)")
     fun observeOpenTasks(): Flow<List<TaskEntity>>
 

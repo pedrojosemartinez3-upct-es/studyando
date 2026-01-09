@@ -6,6 +6,7 @@ import com.studyando.data.local.entity.TaskEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
 @Singleton
 class StudyRepository @Inject constructor(private val db: StudyandoDatabase) {
     val openTasks = db.taskDao().observeOpenTasks()
@@ -16,8 +17,9 @@ class StudyRepository @Inject constructor(private val db: StudyandoDatabase) {
     suspend fun addTask(task: TaskEntity) = db.taskDao().insert(task)
     suspend fun toggleDone(task: TaskEntity) = db.taskDao().update(task)
     fun getClassesByDay(day: Int) = db.scheduleDao().getClassesByDay(day)
+    fun getAllTasks() = db.taskDao().getAllTasks()
 
     suspend fun insertClass(session: ScheduleEntity) = db.scheduleDao().insert(session)
-    suspend fun updateClass(session: ScheduleEntity) = db.scheduleDao().insert(session)
+    suspend fun updateClass(session: ScheduleEntity) = db.scheduleDao().update(session)
     suspend fun deleteClass(session: ScheduleEntity) = db.scheduleDao().delete(session)
 }

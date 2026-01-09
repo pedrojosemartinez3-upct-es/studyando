@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         // Definimos las pantallas principales que no llevan botón de "atrás"
         appBarConfig = AppBarConfiguration(
-            setOf(R.id.tasksFragment, R.id.pomodoroFragment, R.id.scheduleFragment, R.id.statsFragment)
+            setOf(R.id.tasksFragment, R.id.pomodoroFragment, R.id.scheduleFragment)
         )
 
         // Unimos la Toolbar y el BottomNav con el controlador de navegación

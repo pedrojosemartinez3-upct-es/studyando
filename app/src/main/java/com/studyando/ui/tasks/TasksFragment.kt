@@ -56,9 +56,12 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnTaskClic
 
     override fun onTaskClicked(task: TaskEntity) {
         val args = Bundle().apply {
-            putInt("task_id", task.id.toInt())
+            putLong("task_id", task.id)
             putString("title", task.title)
             putString("desc", task.description)
+            putLong("due_at", task.dueAt ?: -1L)
+            putInt("priority", task.priority)
+            putBoolean("is_done", task.isDone)
         }
         findNavController().navigate(R.id.action_tasksFragment_to_addEditTaskFragment, args)
     }
