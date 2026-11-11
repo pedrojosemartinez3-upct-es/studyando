@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="8dp">
+
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_launcher_foreground"
+        android:contentDescription="Logo Studyando" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Studyando"
+        android:textColor="#6750A4"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginStart="12dp"
+        android:fontFamily="sans-serif-medium" />
+
+</LinearLayout>
